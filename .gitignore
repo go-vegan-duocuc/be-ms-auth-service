@@ -32,5 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
-### Dev Profile ###
-./src/main/resources/application-dev.properties
+.codiumai
+
+.idea/
+.idea/*
+
+/.idea/runConfigurations/
+/.idea/sonarlint/
