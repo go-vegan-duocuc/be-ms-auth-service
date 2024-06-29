@@ -1,4 +1,4 @@
-package cl.govegan.msauthservice.jwt;
+package cl.govegan.msauthservice.service.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -29,6 +29,9 @@ public class JwtService {
 
     @Value("${jwt.expiration}")
     private Long jwtExpirationInMs;
+
+    @Value("${jwt.refresh.expiration}")
+    private Long jwtRefreshExpirationInMs;
 
     public String extractUsername (String token) {
         return extractClaim(token, Claims::getSubject);
@@ -83,6 +86,16 @@ public class JwtService {
                 .compact();
     }
 
+    private String createToken (Map<String, Object> claims, String subject, Long timeExpiration) {
+        return Jwts.builder()
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(Date.from(Instant.now().plusMillis(timeExpiration)))
+                .signWith(getKey())
+                .compact();
+    }
+
     public Boolean validateToken (String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
@@ -96,4 +109,8 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    public String generateRefreshToken (UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, userDetails.getUsername(), jwtRefreshExpirationInMs);
+    }
 }

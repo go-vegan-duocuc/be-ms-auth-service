@@ -30,7 +30,6 @@ public class User implements UserDetails {
     private String email;
     private String password;
     private List<String> roles;
-    private String resetToken;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities () {

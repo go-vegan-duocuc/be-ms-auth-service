@@ -1,6 +1,6 @@
 package cl.govegan.msauthservice.security;
 
-import cl.govegan.msauthservice.jwt.JwtService;
+import cl.govegan.msauthservice.service.jwt.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,7 +23,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
+    private static final Logger logService = LoggerFactory.getLogger(JwtRequestFilter.class);
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
 
@@ -40,14 +40,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 username = jwtService.extractUsername(jwt);
             } catch (ExpiredJwtException e) {
-                logger.error("JWT expired");
+                logService.error("JWT expired for token: {}", jwt);
+            } catch (Exception e) {
+                logService.error("Error extracting username from token: {}", jwt, e);
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            if (jwtService.validateToken(jwt, userDetails)) {
+            if (Boolean.TRUE.equals(jwtService.validateToken(jwt, userDetails))) {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -55,6 +57,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 );
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                logService.warn("Invalid JWT token: {}", jwt);
             }
         }
 
