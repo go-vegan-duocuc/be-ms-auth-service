@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class TokenLoad {
+public class TokenPayload {
     private String token;
     private String refreshToken;
 }
