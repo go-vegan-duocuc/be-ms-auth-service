@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import cl.govegan.msauthservice.service.userservice.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 
 @EnableWebSecurity
@@ -21,8 +20,6 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
-
-    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder () {
