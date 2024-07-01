@@ -32,30 +32,31 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         final String authorizationHeader = request.getHeader("Authorization");
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String jwt = authorizationHeader.substring(7);
+            final String jwtToken = authorizationHeader.substring(7);
+
             try {
-                String subject = jwtService.extractSubject(jwt);
-                if (Boolean.TRUE.equals(jwtService.validateToken(jwt, subject))) {
-                    setAuthenticationContext(subject, request);
+                if (Boolean.TRUE.equals(jwtService.validateToken(jwtToken))) {
+                    setAuthenticationContext(jwtToken, request);
                 } else {
-                    logService.warn("Invalid JWT token: {}", jwt);
+                    logService.warn("Invalid JWT token: {}", jwtToken);
                 }
             } catch (TokenValidationException e) {
                 logService.error("Token validation exception: {}", e.getMessage());
             } catch (Exception e) {
-                logService.error("Error processing JWT token: {}", jwt, e);
+                logService.error("Error processing JWT token: {}", jwtToken, e);
             }
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private void setAuthenticationContext(String subject, HttpServletRequest request) {
+    private void setAuthenticationContext(String jwtToken, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            subject, null, null // Or authorities if needed
+            jwtToken, null, null
         );
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        logService.info("Token is valid for user: {}", subject);
+        String username = jwtService.extractSubject(jwtToken);
+        logService.info("Token is valid for user: {}", username);
     }
 }
