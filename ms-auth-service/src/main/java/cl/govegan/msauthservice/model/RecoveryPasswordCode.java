@@ -20,7 +20,5 @@ public class RecoveryPasswordCode {
       private String id;
       private String code;
       private String username;
-      private boolean used;
       private Long expirationTime;
-      private boolean expired;
 }

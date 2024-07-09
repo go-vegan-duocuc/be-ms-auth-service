@@ -59,6 +59,9 @@ public class LoginService {
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(refreshToken.getUsername());
 
+        // Delete old refresh token
+        refreshTokenService.deleteRefreshTokenByUser(userDetails.getUsername());
+
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userDetails.getUsername());
 
         return TokenPayload.builder()

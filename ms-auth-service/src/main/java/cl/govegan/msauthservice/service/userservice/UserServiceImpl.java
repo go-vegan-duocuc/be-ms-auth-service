@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
          user.setPassword(passwordEncoder.encode(newPasswordRequest.getNewPassword()));
          userRepository.save(user);
       }
-   }
+   }   
 
    public String updateEmail(NewEmailRequest newEmailRequest, Authentication authentication) {
 

@@ -13,9 +13,11 @@ import cl.govegan.msauthservice.model.User;
 import cl.govegan.msauthservice.service.login.LoginService;
 import cl.govegan.msauthservice.service.recoverpassword.RecoveryPasswordService;
 import cl.govegan.msauthservice.service.register.RegisterService;
+import cl.govegan.msauthservice.web.request.CheckCodeRequest;
 import cl.govegan.msauthservice.web.request.LoginRequest;
 import cl.govegan.msauthservice.web.request.RefreshTokenRequest;
 import cl.govegan.msauthservice.web.request.RegisterRequest;
+import cl.govegan.msauthservice.web.request.ResetPasswordByCodeRequest;
 import cl.govegan.msauthservice.web.request.ResetPasswordRequest;
 import cl.govegan.msauthservice.web.response.ApiResponse;
 import cl.govegan.msauthservice.web.response.TokenPayload;
@@ -114,5 +116,27 @@ public class AuthenticationController {
                     .build());
         }
 
+    }
+
+    @PostMapping("/check-code")
+    public ResponseEntity<String> checkCode(@RequestBody CheckCodeRequest checkCodeRequest) {
+
+        try {
+            recoveryPasswordService.checkCode(checkCodeRequest);
+            return ResponseEntity.ok("Code checked successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password-by-code")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordByCodeRequest body) {
+
+        try {
+            recoveryPasswordService.resetPasswordByCode(body);
+            return ResponseEntity.ok("Password reset successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

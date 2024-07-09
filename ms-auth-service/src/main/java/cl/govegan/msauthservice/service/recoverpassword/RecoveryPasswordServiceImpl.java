@@ -2,8 +2,10 @@ package cl.govegan.msauthservice.service.recoverpassword;
 
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
@@ -13,6 +15,9 @@ import cl.govegan.msauthservice.repository.RecoveryPasswordCodeRepository;
 import cl.govegan.msauthservice.service.email.EmailService;
 import cl.govegan.msauthservice.service.jwt.JwtService;
 import cl.govegan.msauthservice.service.userservice.UserService;
+import cl.govegan.msauthservice.web.request.CheckCodeRequest;
+import cl.govegan.msauthservice.web.request.ResetPasswordByCodeRequest;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import cl.govegan.msauthservice.repository.UserRepository;
 
@@ -24,58 +29,91 @@ public class RecoveryPasswordServiceImpl implements RecoveryPasswordService {
    private final RecoveryPasswordCodeRepository recoveryPasswordCodeRepository;
    private final EmailService emailService;
    private final UserRepository userRepository;
+   private final PasswordEncoder passwordEncoder;
 
    @Override
-   public RecoveryPasswordCode sendRecoveryCodeByEmail(String email) {
-
-      Context context = new Context();
-
-      Optional<User> userOptional = userRepository.findByEmail(email);
-
-      if (userOptional.isPresent()) {
-         deleteRecoverPasswordCode(userOptional.get().getUsername());
-      } else {
-         throw new RuntimeException("User not found");
-      }
-
-      RecoveryPasswordCode recoveryPasswordCode = RecoveryPasswordCode.builder()
-            .code(generateRecoveryCode())
-            .username(userOptional.get().getUsername())
-            .used(false)
-            .expirationTime(
-                  System.currentTimeMillis() + 86400000)
-            .expired(false)
-            .build();
-
-      recoveryPasswordCodeRepository.save(recoveryPasswordCode);
-
-      context.setVariable("username", userOptional.get().getUsername());
-      context.setVariable("recoveryCode", recoveryPasswordCode.getCode());
-
-      try {
-         emailService.sendEmail(email, context);
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-
+   public RecoveryPasswordCode sendRecoveryCodeByEmail(String email) throws MessagingException {
+      RecoveryPasswordCode recoveryPasswordCode = saveRecoveryCode(email);
+      Context context = createEmailContext(recoveryPasswordCode);
+      emailService.sendEmail(email, context);
       return recoveryPasswordCode;
-
    }
 
-   @Override
-   public void deleteRecoverPasswordCode(String code) {
-      recoveryPasswordCodeRepository.deleteByCode(code);
+   private Context createEmailContext(RecoveryPasswordCode recoveryPasswordCode) {
+      Context context = new Context();
+      context.setVariable("username", recoveryPasswordCode.getUsername());
+      context.setVariable("recoveryCode", recoveryPasswordCode.getCode());
+      return context;
+   }
+
+   private RecoveryPasswordCode saveRecoveryCode(String email) {
+      return userRepository.findByEmail(email)
+            .map(user -> {
+               if (isExistingCodeActive(user.getUsername())) {
+                  throw new RuntimeException("There is already an active recovery code for this user");
+               }
+
+               return recoveryPasswordCodeRepository.save(RecoveryPasswordCode.builder()
+                     .code(generateRecoveryCode())
+                     .username(user.getUsername())
+                     .expirationTime(System.currentTimeMillis() + 86400000) // 24 hours
+                     .build());
+            })
+            .orElseThrow(() -> new RuntimeException("User not found"));
+   }
+
+   private boolean isExistingCodeActive(String username) {
+      Optional<RecoveryPasswordCode> existingCode = recoveryPasswordCodeRepository.findByUsername(username);
+      return existingCode.isPresent() && !isRecoveryCodeExpired(existingCode.get());
    }
 
    private String generateRecoveryCode() {
-      StringBuilder recoveryCode = new StringBuilder();
+      return String.join("", IntStream.generate(() -> random.nextInt(10))
+            .limit(10)
+            .mapToObj(String::valueOf)
+            .toArray(String[]::new));
+   }
 
-      for (int i = 0; i < 10; i++) {
-         int randomNumber = this.random.nextInt(10);
-         recoveryCode.append(randomNumber);
+   private boolean isRecoveryCodeExpired(RecoveryPasswordCode recoveryPasswordCode) {
+      return recoveryPasswordCode.getExpirationTime() < System.currentTimeMillis();
+   }
+
+   @Override
+   public void checkCode(CheckCodeRequest checkCodeRequest) {
+
+      Optional<RecoveryPasswordCode> recoveryPasswordCode = recoveryPasswordCodeRepository
+            .findByCode(checkCodeRequest.getCode());
+      if (recoveryPasswordCode.isPresent()) {
+         if (isRecoveryCodeExpired(recoveryPasswordCode.get())) {
+            throw new RuntimeException("Recovery code expired");
+         }
+      } else {
+         throw new RuntimeException("Recovery code not valid");
       }
+   }
 
-      return recoveryCode.toString();
+   @Override
+   public void resetPasswordByCode(ResetPasswordByCodeRequest body) {
+
+      Optional<RecoveryPasswordCode> recoveryPasswordCode = recoveryPasswordCodeRepository
+            .findByCode(body.getCode());
+      if (recoveryPasswordCode.isPresent()) {
+         if (isRecoveryCodeExpired(recoveryPasswordCode.get())) {
+            throw new RuntimeException("Recovery code expired");
+         } else {
+            User user = userRepository.findByUsername(recoveryPasswordCode.get().getUsername())
+                  .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (!passwordEncoder.matches(body.getNewPassword(), user.getPassword())) {
+               user.setPassword(passwordEncoder.encode(body.getNewPassword()));
+               userRepository.save(user);
+            } else {
+               throw new RuntimeException("New password is the same as the old password");
+            }
+         }
+      } else {
+         throw new RuntimeException("Recovery code not valid");
+      }
    }
 
 }
