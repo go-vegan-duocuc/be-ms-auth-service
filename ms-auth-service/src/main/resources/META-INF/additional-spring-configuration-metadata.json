@@ -1,19 +1,32 @@
-{
-  "properties": [
-    {
-      "name": "jwt.secret",
-      "type": "java.lang.String",
-      "description": "Description for jwt.secret."
-    },
-    {
-      "name": "jwt.expiration",
-      "type": "java.lang.String",
-      "description": "Description for jwt.expiration."
-    },
-    {
-      "name": "jwt.refresh.expiration",
-      "type": "java.lang.String",
-      "description": "Description for jwt.refresh.expiration."
-    }
-  ]
-}
+{"properties": [
+  {
+    "name": "jwt.secret",
+    "type": "java.lang.String",
+    "description": "Description for jwt.secret."
+  },
+  {
+    "name": "jwt.expiration",
+    "type": "java.lang.String",
+    "description": "Description for jwt.expiration."
+  },
+  {
+    "name": "jwt.refresh.expiration",
+    "type": "java.lang.String",
+    "description": "Description for jwt.refresh.expiration."
+  },
+  {
+    "name": "profile.service.url",
+    "type": "java.lang.String",
+    "description": "A description for 'profile.service.url'"
+  },
+  {
+    "name": "profile.service.prefix",
+    "type": "java.lang.String",
+    "description": "A description for 'profile.service.prefix'"
+  },
+  {
+    "name": "profile.service.mapping.profile",
+    "type": "java.lang.String",
+    "description": "A description for 'profile.service.mapping.profile'"
+  }
+]}

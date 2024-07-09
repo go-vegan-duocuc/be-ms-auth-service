@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class UserPayload {
     private String username;
+    private String password;
     private String email;
 }

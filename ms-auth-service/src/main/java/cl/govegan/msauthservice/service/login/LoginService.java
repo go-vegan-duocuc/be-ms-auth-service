@@ -27,16 +27,18 @@ public class LoginService {
     private final RefreshTokenService refreshTokenService;
     private final CustomUserDetailsService customUserDetailsService;
 
-    public TokenPayload login (LoginRequest loginRequest) {
+    public TokenPayload login(LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
-                            loginRequest.getPassword()
-                    )
-            );
-            
+                            loginRequest.getPassword()));
+
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            if (refreshTokenService.findByUsername(userDetails.getUsername()).isPresent()) {
+                refreshTokenService.deleteRefreshTokenByUser(userDetails.getUsername());
+            }
 
             return TokenPayload.builder()
                     .token(jwtService.generateToken(userDetails))
@@ -47,7 +49,7 @@ public class LoginService {
         }
     }
 
-    public TokenPayload refresh (String token) {
+    public TokenPayload refresh(String token) {
 
         RefreshToken refreshToken = refreshTokenService.findByToken(token).orElseThrow();
         if (refreshToken.getExpiration().compareTo(Instant.now()) < 0) {
