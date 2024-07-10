@@ -1,5 +1,7 @@
 package cl.govegan.msauthservice.controller.authentication;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -119,24 +121,24 @@ public class AuthenticationController {
     }
 
     @PostMapping("/check-code")
-    public ResponseEntity<String> checkCode(@RequestBody CheckCodeRequest checkCodeRequest) {
+    public ResponseEntity<Map<String,String>> checkCode(@RequestBody CheckCodeRequest checkCodeRequest) {
 
         try {
             recoveryPasswordService.checkCode(checkCodeRequest);
-            return ResponseEntity.ok("Code checked successfully");
+            return ResponseEntity.ok(Map.of("message", "Code valid"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
     @PostMapping("/reset-password-by-code")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordByCodeRequest body) {
+    public ResponseEntity<Map<String,String>> resetPassword(@RequestBody ResetPasswordByCodeRequest body) {
 
         try {
             recoveryPasswordService.resetPasswordByCode(body);
-            return ResponseEntity.ok("Password reset successfully");
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 }

@@ -14,18 +14,4 @@ public class MsAuthServiceApplication {
         SpringApplication.run(MsAuthServiceApplication.class, args);
     }
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(@NonNull CorsRegistry registry) {
-                registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:8100", "http://localhost:8080")
-                    .allowedMethods("GET", "POST", "PUT", "DELETE")
-                    .allowedHeaders("*")
-                    .allowCredentials(false);
-            }
-        };
-    }
-
 }

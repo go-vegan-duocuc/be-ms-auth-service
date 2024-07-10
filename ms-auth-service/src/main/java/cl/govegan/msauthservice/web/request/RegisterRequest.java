@@ -26,7 +26,4 @@ public class RegisterRequest {
     @NotNull
     @Email
     String email;
-
-    @NotNull
-    String role;
 }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+   <meta charset="utf-8">
+   <title>Bienvenida a GoVegan</title>
+</head>
+
+<body>
+   <div th:fragment="welcome-email">
+      <div class="container">
+         <h1>¡Bienvenido(a) <span th:text="${username}" />! 🥦</h1>
+         <p>¡Te damos la bienvenida a nuestra comunidad GoVegan!</p>
+         <p>Gracias por unirte a nosotros. A partir de ahora podrás disfrutar de una
+            amplia variedad de platillos veganos y hacer parte de una comunidad
+            que defiende los derechos de los animales.</p>
+         <p>Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.
+            Estamos aquí para ayudarte.</p>
+         <div class="footer">
+            <p>🌱 ¡Gracias por ser parte de nuestra comunidad GoVegan 🌱</p>
+            <img src="https://img.icons8.com/emoji/48/000000/green-heart.png" alt="Green Heart Emoji">
+         </div>
+      </div>
+   </div>
+</body>
+
+</html>

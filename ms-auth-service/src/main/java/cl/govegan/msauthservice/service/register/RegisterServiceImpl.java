@@ -10,7 +10,9 @@ import cl.govegan.msauthservice.exception.EmailAlreadyExistsException;
 import cl.govegan.msauthservice.exception.UsernameAlreadyExistsException;
 import cl.govegan.msauthservice.model.User;
 import cl.govegan.msauthservice.repository.UserRepository;
+import cl.govegan.msauthservice.service.email.EmailService;
 import cl.govegan.msauthservice.web.request.RegisterRequest;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ public class RegisterServiceImpl implements RegisterService {
     private static final Logger logger = LoggerFactory.getLogger(RegisterServiceImpl.class);
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Override
     public User register (RegisterRequest registerRequest) {
@@ -35,13 +38,22 @@ public class RegisterServiceImpl implements RegisterService {
         try {
             logger.debug("Registering user: {}", registerRequest);
 
-            return userRepository.save(User.builder()
+            User user = userRepository.save(User.builder()
                     .username(registerRequest.getUsername())
                     .email(registerRequest.getEmail())
                     .password(passwordEncoder.encode(registerRequest.getPassword()))
                     .build());
+
+            sendWelcomeEmail(user);
+
+            return user;
         } catch (Exception e) {
             throw new DatabaseErrorException("Error saving user");
         }
     }
+
+    private void sendWelcomeEmail(User user) throws MessagingException {
+        emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
+    }
+
 }

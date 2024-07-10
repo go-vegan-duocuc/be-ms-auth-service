@@ -35,7 +35,7 @@ public class RecoveryPasswordServiceImpl implements RecoveryPasswordService {
    public RecoveryPasswordCode sendRecoveryCodeByEmail(String email) throws MessagingException {
       RecoveryPasswordCode recoveryPasswordCode = saveRecoveryCode(email);
       Context context = createEmailContext(recoveryPasswordCode);
-      emailService.sendEmail(email, context);
+      emailService.sendRecoveryPasswordEmail(email, context);
       return recoveryPasswordCode;
    }
 
