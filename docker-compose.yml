@@ -1,0 +1,30 @@
+#Local Development
+version: "3.8"
+
+services:
+  ms-auth-service:
+    build:
+      context: ./ms-auth-service
+      dockerfile: Dockerfile
+    volumes:
+      - /tmp
+    environment:
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOST=${MONGO_HOST}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - JWT_REFRESH=${JWT_REFRESH}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+    env_file:
+      - path: .env
+    ports:
+      - "8081:8081"
+    networks:
+      - ms-auth-service-network
+
+networks:
+  ms-auth-service-network:
+    driver: bridge
